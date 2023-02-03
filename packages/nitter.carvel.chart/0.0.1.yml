@@ -1,0 +1,25 @@
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: nitter.carvel.chart.0.0.1
+spec:
+  refName: nitter.carvel.chart
+  version: 0.0.1
+  releaseNotes: |
+        Initial release of the carvel-nitter package
+  template:
+    spec:
+      fetch:
+      - imgpkgBundle:
+          image: ghcr.io/slapula/carvel-nitter
+      template:
+      - ytt:
+          paths:
+          - "templates/"
+      - kbld:
+          paths:
+          - ".imgpkg/images.yml"
+          - "-"
+      deploy:
+      - kapp: {}

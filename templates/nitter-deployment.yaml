@@ -1,0 +1,50 @@
+#@ load("@ytt:data", "data")
+#@ load("common.lib.yaml", "labels", "selectors")
+#@ load("helpers.star", "name")
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #@ name(data.values) + "-nitter-deployment"
+  labels: #@ labels(data.values)
+spec:
+  replicas: #@ data.values.replicaCount
+  selector:
+    matchLabels: #@ selectors(data.values)
+  strategy:
+    type: #@ data.values.strategyType
+    #@ if data.values.strategyType == "RollingUpdate":
+    rollingUpdate:
+      maxSurge: #@ data.values.maxSurge
+      maxUnavailable: #@ data.values.maxUnavailable
+    #@ end
+  template:
+    metadata:
+      name: #@ name(data.values) + "-pod"
+      labels: #@ labels(data.values)
+    spec:
+      containers:
+        - image: #@ data.values.image
+          livenessProbe:
+            exec:
+              command:
+                - wget -nv --tries=1 --spider http://127.0.0.1:8080/Jack/status/20 || exit 1
+            failureThreshold: 2
+            periodSeconds: 30
+            timeoutSeconds: 5
+          name: nitter
+          ports:
+            - containerPort: #@ data.values.port
+          resources: {}
+          volumeMounts:
+            - mountPath: /src/nitter.conf
+              name: nitter-config
+              subPath: 01-nitter.conf
+      restartPolicy: Always
+      volumes:
+        - name: nitter-config
+          configMap:
+            defaultMode: 420
+            name: #@ name(data.values) + "-nitter-config"
+status: {}

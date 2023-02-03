@@ -1,0 +1,37 @@
+name: package-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+
+jobs:
+  carvel-nitter-package-release:
+    name: carvel-nitter package release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3.0.1
+
+      - name: Grab Git short SHA
+        id: vars
+        shell: bash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install Carvel tools
+        uses: vmware-tanzu/carvel-setup-action@v1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push updated Package to Github Container Registry
+        run: |
+          imgpkg push -b ghcr.io/${{ github.actor }}/carvel-nitter:${{ steps.vars.outputs.sha_short }} -f .
+          imgpkg push -b ghcr.io/${{ github.actor }}/carvel-nitter:${{ github.ref_name }} -f .
+          imgpkg push -b ghcr.io/${{ github.actor }}/carvel-nitter:latest -f .

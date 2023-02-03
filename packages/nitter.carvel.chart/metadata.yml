@@ -1,0 +1,13 @@
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  name: nitter.carvel.chart
+spec:
+  displayName: "nitter"
+  longDescription: "Carval chart for deploying nitter on a Kubernetes cluster"
+  shortDescription: "nitter on kubernetes"
+  categories:
+  - twitter
+  - social-networking
+  - proxy

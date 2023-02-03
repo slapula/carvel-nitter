@@ -1,0 +1,50 @@
+#@ load("@ytt:data", "data")
+#@ load("common.lib.yaml", "labels")
+#@ load("helpers.star", "name")
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: #@ name(data.values) + "-nitter-config"
+  labels: #@ labels(data.values)
+#@yaml/text-templated-strings
+data:
+  01-custom.conf: |
+    [Server]
+    address = "0.0.0.0"
+    port = (@= str(data.values.port) @)
+    https = false  # disable to enable cookies when not using https
+    httpMaxConnections = 100
+    staticDir = "./public"
+    title = "nitter"
+    hostname = (@= data.values.hostname @)
+
+    [Cache]
+    listMinutes = 240  # how long to cache list info (not the tweets, so keep it high)
+    rssMinutes = 10  # how long to cache rss queries
+    redisHost = "localhost"  # Change to "nitter-redis" if using docker-compose
+    redisPort = 6379
+    redisPassword = ""
+    redisConnections = 20  # connection pool size
+    redisMaxConnections = 30
+
+    [Config]
+    hmacKey = "secretkey"  # random key for cryptographic signing of video urls
+    base64Media = false  # use base64 encoding for proxied media urls
+    enableRSS = true  # set this to false to disable RSS feeds
+    enableDebug = false  # enable request logs and debug endpoints
+    proxy = ""  # http/https url, SOCKS proxies are not supported
+    proxyAuth = ""
+    tokenCount = 10
+
+    # Change default preferences here, see src/prefs_impl.nim for a complete list
+    [Preferences]
+    theme = "Nitter"
+    replaceTwitter = "nitter.net"
+    #replaceYouTube = "piped.kavin.rocks"
+    #replaceReddit = "teddit.net"
+    #replaceInstagram = ""
+    proxyVideos = true
+    hlsPlayback = false
+    infiniteScroll = true

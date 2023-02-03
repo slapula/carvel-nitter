@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+#@ load("common.lib.yaml", "labels", "selectors")
+#@ load("helpers.star", "name")
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: #@ name(data.values) + "-redis-pvc"
+  labels: #@ labels(data.values)
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi
+status: {}

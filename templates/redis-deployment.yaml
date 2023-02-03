@@ -1,0 +1,48 @@
+#@ load("@ytt:data", "data")
+#@ load("common.lib.yaml", "labels", "selectors")
+#@ load("helpers.star", "name")
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #@ name(data.values) + "-redis-deployment"
+  labels: #@ labels(data.values)
+spec:
+  replicas: #@ data.values.redis.replicaCount
+  selector:
+    matchLabels: #@ selectors(data.values.redis)
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      name: #@ name(data.values) + "-redis-pod"
+      labels: #@ labels(data.values.redis)
+    spec:
+      containers:
+        - args:
+            - redis-server
+            - --save
+            - "60"
+            - "1"
+            - --loglevel
+            - warning
+          image: #@ data.values.redis.image
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli ping
+            failureThreshold: 2
+            periodSeconds: 30
+            timeoutSeconds: 5
+          name: redis
+          resources: {}
+          volumeMounts:
+            - mountPath: /data
+              name: nitter-redis
+      restartPolicy: Always
+      volumes:
+        - name: nitter-redis
+          persistentVolumeClaim:
+            claimName: nitter-redis
+status: {}
